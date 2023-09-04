@@ -7,6 +7,7 @@ import {New} from './pages/dashboard/new'
 import {ServDetail} from './pages/serv'
 
 import {Layout} from './components/layout'
+import {Private} from './routes/Private'
 
 const router = createBrowserRouter([
   {
@@ -22,11 +23,11 @@ const router = createBrowserRouter([
       },
       {
         path:"dashboard",
-        element:<Dasboard/>
+        element:<Private><Dasboard/></Private>
       },
       {
         path:"dashboard/new",
-        element:<New/>
+        element:<Private><New/></Private>
       }
     ]
   },
