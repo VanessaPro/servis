@@ -10,7 +10,7 @@ interface InputProps{
     
 
 }
-export function Input({name,placeholder,type, register,rules, error}: InputProps){
+export function Input({name,placeholder,type, register, rules, error}: InputProps){
     return(
         <div>
             <input 

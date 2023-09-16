@@ -9,19 +9,20 @@ import  {z} from 'zod'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {AuthContext} from '../../../contexts/AuthContext'
 import {v4 as uuidV4} from 'uuid'
-import { storage } from '../../../services/firebaseConecction';
+import { storage, db } from '../../../services/firebaseConecction';
 import {
 ref,
 uploadBytes,
 getDownloadURL,
 deleteObject
 } from 'firebase/storage'
+import {addDoc, collection} from 'firebase/firestore'
 
 
 
 const schema = z.object({
   name:z.string().nonempty("O campo do nome é obrigatório"),
-  tipo:z.string().nonempty("Descrição do serviço é obrigatório"),
+  description:z.string().nonempty("Descrição do serviço é obrigatório"),
   price:z.string().nonempty("O preço é obrigatório"),
   city:z.string().nonempty("A cidade é obrigatório"),
   whatsapp: z.string().min(1,"O telefone é obrigatório").refine((value) => /^(\d{10,12})$/.test(value),
@@ -90,8 +91,43 @@ export function New() {
   }
 
   function onSumit(data: FormData){
-     console.log(data);
-  }
+
+    if(carImages.length === 0){
+      alert("Envie alguma mensagem deste serviço!")
+      return;
+    }
+     
+
+     const servListImages = carImages.map(serv => {
+      return{
+        uid:serv.uid,
+        name:serv.name,
+        url:serv.url
+      }
+      })
+     
+     addDoc(collection(db,"servs"), {
+      uid: user?.uid,
+      name:data.name,
+      whatsapp:data.whatsapp,
+      city:data.city,
+      price:data.price,
+      crete:new Date(),
+      owner: user?.name,
+      images:servListImages,
+      description:data.description,
+     })  
+     .then(() => {
+      reset();
+      setCarImages([]);
+       console.log("Cadastrado com sucesso");
+     })
+     .catch((error) => {
+      console.log(error)
+      console.log("Erro ao cadastrar no banco") 
+     })
+    }
+  
 
 
   async function handleDeleteImage(item: ImageItemProps){
@@ -158,8 +194,8 @@ export function New() {
               <Input 
                  type="text"
                  register={register}
-                 name="tipo"
-                 error={errors.tipo?.message}
+                 name="description"
+                 error={errors.description?.message}
                  placeholder='Ex: Eventos / Festas, Reparação'
               />
            </div>
