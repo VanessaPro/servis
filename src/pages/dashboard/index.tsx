@@ -4,7 +4,8 @@ import {DashboardHeader} from '../../components/panelheader'
 import {FiTrash2} from   'react-icons/fi'
 
 import {collection, getDocs,where,query, doc, deleteDoc} from 'firebase/firestore'
-import {db}  from '../../services/firebaseConecction'
+import {db,storage}  from '../../services/firebaseConecction'
+import {ref, deleteObject} from  'firebase/storage'
 import {TServs} from '../../types/TServs'
 import { AuthContext } from '../../contexts/AuthContext';
 
@@ -47,10 +48,25 @@ export function Dasboard() {
     loadServs();
   }, [user]);
 
-  async function handleDeleteServ (id:string) {
-    const docRef = doc (db, "servs", id)
+  async function handleDeleteServ(serv: TServs) {
+    const itemServ = serv;
+
+    const docRef = doc(db, 'servs', itemServ.id);
     await deleteDoc(docRef);
-    setServs(servs.filter(serv => serv.id !== id))
+
+    itemServ.images.map(async (image) => {
+      const imagePath = `images/${image.uid}/${image.name}`;
+      const imageRef = ref(storage, imagePath);
+
+      try {
+        await deleteObject(imageRef);
+        setServs(servs.filter((serv) => serv.id !== itemServ.id));
+       
+      } catch (err) {
+        console.log("Erro ao excluir a imagem")
+      }
+    })
+    
   }
   
  
@@ -62,7 +78,7 @@ export function Dasboard() {
           {servs.map( serv =>(
               <section key={serv.id} className="w-full bg-white rounded-lg relative">
               <button
-                  onClick={() => handleDeleteServ(serv.id)}
+                  onClick={() => handleDeleteServ(serv)}
                   className="absolute bg-white w-14 h-14 rounded-full flex items-center justify-center right-2 top-2 drop-shadow"
               >
                 <FiTrash2 size={26} color="#000" />
