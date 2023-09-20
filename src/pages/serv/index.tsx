@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {Container} from '../../components/container'
-import { FaHandHolding, FaWhatsapp } from 'react-icons/fa';
+import { FaWhatsapp } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getDoc, doc } from 'firebase/firestore';
 import {db } from '../../services/firebaseConecction'
@@ -31,24 +31,30 @@ export function ServDetail() {
   const {id} = useParams();
   const [serv, setServ] = useState<ServProps>()
   const [sliderPerView, setSlidePerView] = useState<number>(2);
+  const navigate = useNavigate();
 
   useEffect (() => {
     async function loadServ(){
       if (!id){return}
+
       const docRef = doc (db, "servs",id)
       getDoc(docRef)
-      .then((snaphot) => {
+      .then((snapshot) => {
+
+        if(!snapshot.data()){
+          navigate("/")
+        }
         setServ ({
-          id: snaphot.id,
-          name: snaphot.data()?.name,
-          city: snaphot.data()?.city,
-          price: snaphot.data()?.price,
-          description: snaphot.data()?.description,
-          images: snaphot.data()?.images,
-          uid: snaphot.data()?.uid,
-          crete: snaphot.data()?.crete,
-          whatsapp:snaphot.data()?.whatsapp,
-          owner:snaphot.data()?.owner 
+          id: snapshot.id,
+          name: snapshot.data()?.name,
+          city: snapshot.data()?.city,
+          price:snapshot.data()?.price,
+          description: snapshot.data()?.description,
+          images:snapshot.data()?.images,
+          uid: snapshot.data()?.uid,
+          crete: snapshot.data()?.crete,
+          whatsapp:snapshot.data()?.whatsapp,
+          owner:snapshot.data()?.owner 
         })
 
       })
@@ -56,7 +62,7 @@ export function ServDetail() {
     }
 
     loadServ();
-  }, [id])
+  }, [id, navigate])
 
 
   useEffect (() => {
@@ -83,21 +89,24 @@ export function ServDetail() {
     return (
     <Container>
       
-      <Swiper 
-      slidesPerView={sliderPerView}
-      pagination={{clickable:true}}
-      navigation
-      >
-         {serv?.images.map(image =>(
-          <SwiperSlide key={image.name}>
-            <img 
-             src={image.url}
-             className='w-full h-96 object-cover'
-            />
-          </SwiperSlide>
-         ))}
-        
-      </Swiper>
+      {serv && (
+        <Swiper 
+          slidesPerView={sliderPerView}
+          pagination={{clickable:true}}
+          navigation
+          >
+            {serv?.images.map(image =>(
+              <SwiperSlide key={image.name}>
+                <img 
+                src={image.url}
+                className='w-full h-96 object-cover'
+                />
+              </SwiperSlide>
+            ))}
+          
+        </Swiper>
+      )}
+
       {serv &&(
         <main className='w-full bg-white rounded-lg p-6 my-4'>
           <div className='flex flex-col sm:flex-row mb-4 items-center justify-between'>
@@ -118,9 +127,12 @@ export function ServDetail() {
             <strong>Telefone / WhatsApp</strong>
              <p>{serv?.whatsapp}</p>
 
-             <a className=' cursor-pointer bg-green-500 w-full text-white flex items-center justify-center gap-2 my-6 h-10 text-xl rounded-lg font-medium'>
-              Conversar com o prestador do serviço
-              <FaWhatsapp size={26} color="#fff"/>
+             <a 
+               href={`https://api.whatsapp.com/send?phone=${serv?.whatsapp}&text=Olá, vi esse serviço de ${serv?.name} no site WebX e fiquei interessado(a)`}
+               target='_blank'
+              className=' cursor-pointer bg-green-500 w-full text-white flex items-center justify-center gap-2 my-6 h-10 text-xl rounded-lg font-medium'>
+                Conversar com o prestador do serviço
+                <FaWhatsapp size={26} color="#fff"/>
              </a>
         </main>
       )}

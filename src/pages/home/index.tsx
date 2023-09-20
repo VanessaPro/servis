@@ -7,7 +7,7 @@ import {
   query,
   orderBy, 
   getDocs, 
-  where,
+  
 } from 'firebase/firestore'
 import {db}  from '../../services/firebaseConecction'
 import {TServs} from '../../types/TServs'
@@ -16,9 +16,17 @@ import {TServs} from '../../types/TServs'
 export function Home() {
   const [servs, setServs] = useState<TServs[]>([]);
   const [loadImages, setLoadImages] = useState<string[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
 
   
+  
+  useEffect(() => {
+    async function fetchData() {
+      loadServs();
+    }
+
+    fetchData();
+  }, []); 
 
   async function loadServs() {
     try {
@@ -37,7 +45,7 @@ export function Home() {
           price: data.price,
           description: data.description,
           images: data.images,
-          uid: data.uid,
+          uid: data.uid
         };
   
         listservs.push(serv);
@@ -54,56 +62,49 @@ export function Home() {
   }
 
   async function handleSearchServ() {
-    if (input === "") {
+    if (input === '') {
       loadServs();
       return;
     }
-
+  
     setServs([]);
     setLoadImages([]);
-
+  
+    const inputLowercase = input.toLowerCase(); // Convert the input to lowercase
+  
     try {
-      const q = query(
-        collection(db, 'servs'),
-        where('name', '>=', input.toUpperCase()),
-        where('name', '<=', input.toUpperCase() + '\uf8ff')
-
-      );
-
-    
-
-      const querySnapshot = await getDocs(q);
-
+      const servsRef = collection(db, 'servs');
+      const queryRef = query(servsRef, orderBy('name', 'asc')); // Assuming you want to order by name
+      const querySnapshot = await getDocs(queryRef);
+  
       const listservs: TServs[] = [];
-
+  
       querySnapshot.forEach((doc) => {
-        listservs.push({
-          id: doc.id,
-          name: doc.data().name,
-          city: doc.data().city,
-          price: doc.data().price,
-          description: doc.data().description,
-          images: doc.data().images,
-          uid: doc.data().uid,
-        });
+        const data = doc.data();
+        const nameLowerCase = data.name.toLowerCase(); // Convert the name to lowercase for comparison
+  
+        if (nameLowerCase.includes(inputLowercase)) {
+          const serv: TServs = {
+            id: doc.id,
+            name: data.name,
+            city: data.city,
+            price: data.price,
+            description: data.description,
+            images: data.images,
+            uid: data.uid
+          };
+  
+          listservs.push(serv);
+        }
       });
-
+  
+      console.log('listservs:', listservs); // Log the retrieved data
       setServs(listservs);
     } catch (error) {
-      console.error('Error searching data:', error);
+      console.error('Error fetching data:', error);
     }
   }
-
   
-  useEffect(() => {
-    async function fetchData() {
-      loadServs();
-    }
-
-    fetchData();
-  }, []); 
-
-
 
     return (
 
@@ -115,7 +116,8 @@ export function Home() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
-          <button className=" bg-yellow-100 h-9 px-8 rounded-lg font-medium text-lg text-red-600" onClick={handleSearchServ}>
+          <button className=" bg-yellow-100 h-9 px-8 rounded-lg font-medium text-lg text-red-600" 
+          onClick={handleSearchServ}>
             Buscar
           </button>
         </section>
