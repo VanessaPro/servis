@@ -148,7 +148,7 @@ export function Home() {
               <p className="font-bold mt-1 mb-2 px-2">{serv.name} </p>
               <div className="flex flex-col px-2">
                 <span className="text-zinc-700 mb-6">{serv.description}</span>
-                <strong className="text-black font-medium text-xl">R${serv.price}</strong>
+                <strong className="text-black font-medium text-xl">R$ {serv.price}</strong>
               </div>
               <div className="w-full h-px bg-slate-200 my-2"></div>
               <div className="px-2 pb-2">
